@@ -1,16 +1,17 @@
 var fs = require('fs'),
     path = require('path'),
+    _ = require('lodash'),
     websockets = require('socket.io')
 
 
-module.exports = function bespokeRemote(opts) {
-  var opts = opts || {}
+module.exports = function bespokeRemote(options) {
+  var config = _.extend({ port: 8001 }, options),
       // Need to start an extra server since grunt-connect does not pass on the
       // "server" to the middleware section of the Gruntfile task :(
       // Forking and pull request might be an option ;-)
-      io = opts.socketio || websockets.listen(8001)
+      io = config.socketio || websockets.listen(config.port)
       // Option for users to extend the provided actions.
-      user_sockets = opts.userSockets || function() {}
+      user_sockets = config.userSockets || function() {}
 
   io.set('browser client minification', true)
   io.set('browser client cache', true)
@@ -35,18 +36,23 @@ module.exports = function bespokeRemote(opts) {
   })
 
   // Nearly everything down from here is shamelessly adapted from connect-livereload
+  function interpolate(content) {
+    return _.template(content, {
+      port: config.port
+    });
+  }
   function socketIOSnippet() {
     return [
       '<!-- socket.io websockets -->',
-      '<script src="http://localhost:8001/socket.io/socket.io.v0.9.15.js"></script>',
+      '<script src="http://localhost:' + config.port + '/socket.io/socket.io.v0.9.15.js"></script>',
       ].join('\n')
   }
   function receiverSnippet() {
     // NOTE: Would it make sense to use the async read method?
-    //       (or cache this)
+    //       (or cache this) -- definitely, I'll get to this later ;) -MD
     return [
       '<script>',
-      fs.readFileSync(path.join(__dirname, 'receiver.js'), 'utf8'),
+      interpolate(fs.readFileSync(path.join(__dirname, 'receiver.js'), 'utf8')),
       '</script>'
     ].join('\n')
   }
@@ -76,7 +82,7 @@ module.exports = function bespokeRemote(opts) {
     }
 
     if (/^\/remote($|\/)/.test(req.url)) {
-      var remote_html = fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8')
+      var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
       // Override push so we don't give connect-livereload a change to manipulate
       // the html.
       res.push = function(chunk) { res.data = remote_html }

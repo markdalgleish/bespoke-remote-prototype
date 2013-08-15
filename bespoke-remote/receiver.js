@@ -1,7 +1,7 @@
 +function(bespoke, window, document, undefined) {
   bespoke.plugins.receiver = function(deck, options) {
     var options = {} || options,
-        socket = io.connect(options.socketUrl || 'http://localhost:8001/');
+        socket = io.connect(options.socketUrl || 'http://localhost:<%= port %>/');
 
 
     socket.on('established', function() {

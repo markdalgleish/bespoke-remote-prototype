@@ -100,7 +100,9 @@ module.exports = function(grunt) {
               require('connect-livereload')({
                 port: config.watch.public.options.livereload
               }),
-              require('./bespoke-remote')(),
+              require('./bespoke-remote')({
+                port: 8001
+              }),
               connect.static(options.base)
             ];
           }
