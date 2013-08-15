@@ -82,3 +82,15 @@ Current options:
   Default: `http://localhost:8001/`  
   The URL `socket.io` should connect to.
 
+Dev Note
+--------
+
+In case you are messing around with the middleware and the http server is
+starting to shutdown because of weird reasons (port already used etc.) this is
+happening due to leftover processes. Just run:
+
+```shell
+    ps aux | grep -i node | grep -v grep | awk '{print $2}' | xargs kill -9
+```
+
+This will kill *all* remaining `node.js` processes.
