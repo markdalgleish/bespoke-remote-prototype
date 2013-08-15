@@ -8,6 +8,7 @@ Install
 To use this prototype, just copy the `bespoke-remote` to your project and
 change the `middleware` section in your Gruntfile to this:
 
+```javascript
     middleware: function(connect, options) {
       return [
         require('connect-livereload')({
@@ -17,6 +18,7 @@ change the `middleware` section in your Gruntfile to this:
         connect.static(options.base)
       ];
     }
+```
 
 index.js
 --------
@@ -38,6 +40,7 @@ Current options:
 Let's say you want to extend the `nextSlide` event and add a new event for the
 server to handle.
 
+```javascript
     var otherActions = function(socket, io) {
       socket.off('nextSlide')  // Turn off default nextSlide handler.
       socket.on('nextSlide', function(data, ack) {
@@ -51,10 +54,12 @@ server to handle.
         exec("say -v 'Hello, this is your Bespoke Presentation speaking. Listen up!")
       })
     }
+```
 
 Now that you have your custom handling written down, simply pass it on to the
 middleware.
 
+```javascript
     middleware: function(connect, options) {
       return [
         require('connect-livereload')({
@@ -64,6 +69,7 @@ middleware.
         connect.static(options.base)
       ];
     }
+```
 
 receiver.js
 -----------
