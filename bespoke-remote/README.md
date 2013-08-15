@@ -9,15 +9,15 @@ To use this prototype, just copy the `bespoke-remote` to your project and
 change the `middleware` section in your Gruntfile to this:
 
 ```javascript
-    middleware: function(connect, options) {
-      return [
-        require('connect-livereload')({
-          port: config.watch.public.options.livereload
-        }),
-        require('./bespoke-remote')(),  // remote control
-        connect.static(options.base)
-      ];
-    }
+middleware: function(connect, options) {
+  return [
+    require('connect-livereload')({
+      port: config.watch.public.options.livereload
+    }),
+    require('./bespoke-remote')(),  // remote control
+    connect.static(options.base)
+  ];
+}
 ```
 
 index.js
@@ -41,34 +41,34 @@ Let's say you want to extend the `nextSlide` event and add a new event for the
 server to handle.
 
 ```javascript
-    var otherActions = function(socket, io) {
-      socket.off('nextSlide')  // Turn off default nextSlide handler.
-      socket.on('nextSlide', function(data, ack) {
-        io.sockets.emit('nextSlide')  // Broadcast to every connected client.
-        console.log('Successfully sent out "nextSlide" event')
-      })
+var otherActions = function(socket, io) {
+  socket.off('nextSlide')  // Turn off default nextSlide handler.
+  socket.on('nextSlide', function(data, ack) {
+    io.sockets.emit('nextSlide')  // Broadcast to every connected client.
+    console.log('Successfully sent out "nextSlide" event')
+  })
 
-      socket.on('speakOutLoud', function(data, ack) {
-        var exec = require('child_process').exec
-        // Assuming you are on OSX, this will make your laptop speak.
-        exec("say -v 'Hello, this is your Bespoke Presentation speaking. Listen up!")
-      })
-    }
+  socket.on('speakOutLoud', function(data, ack) {
+    var exec = require('child_process').exec
+    // Assuming you are on OSX, this will make your laptop speak.
+    exec("say -v 'Hello, this is your Bespoke Presentation speaking. Listen up!")
+  })
+}
 ```
 
 Now that you have your custom handling written down, simply pass it on to the
 middleware.
 
 ```javascript
-    middleware: function(connect, options) {
-      return [
-        require('connect-livereload')({
-          port: config.watch.public.options.livereload
-        }),
-        require('./bespoke-remote')({userSockets: otherActions}),  // Customized remote control.
-        connect.static(options.base)
-      ];
-    }
+middleware: function(connect, options) {
+  return [
+    require('connect-livereload')({
+      port: config.watch.public.options.livereload
+    }),
+    require('./bespoke-remote')({userSockets: otherActions}),  // Customized remote control.
+    connect.static(options.base)
+  ];
+}
 ```
 
 receiver.js
@@ -90,7 +90,7 @@ starting to shutdown because of weird reasons (port already used etc.) this is
 happening due to leftover processes. Just run:
 
 ```shell
-    ps aux | grep -i node | grep -v grep | awk '{print $2}' | xargs kill -9
+ps aux | grep -i node | grep -v grep | awk '{print $2}' | xargs kill -9
 ```
 
 This will kill *all* remaining `node.js` processes.
