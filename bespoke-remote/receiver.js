@@ -8,6 +8,9 @@
       console.info('Connection with server established.')
       console.info('Awaiting paired remote control...')
     })
+    socket.on('remoteConnected', function() {
+      console.info('Paired with remote control. Happy RCing!')
+    })
 
     socket.on('nextSlide', deck.next);
     socket.on('prevSlide', deck.prev);

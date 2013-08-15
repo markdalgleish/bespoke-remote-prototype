@@ -1,6 +1,15 @@
 # bespoke-remote prototype
 > A [Bespoke.js](http://markdalgleish.com/projects/bespoke.js) presentation, built with [generator-bepsoke](https://github.com/markdalgleish/generator-bespoke)
 
+## Watch this
+
+![Bespoke Remote Gif Video Preview](http://d.pr/i/J3VP+)
+
+You can also [watch this on youtube](http://www.youtube.com/watch?v=Tl6xg314M9M)
+
+(sorry for the stutter in gif and on youtube, but my old macbook can't seem to
+handle 3 windows with CSS3 transforms properly ;-))
+
 ## View slides locally
 
 First, ensure you have the following installed:

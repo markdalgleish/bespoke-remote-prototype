@@ -13,22 +13,28 @@ module.exports = function bespokeRemote(opts) {
       user_sockets = opts.userSockets || function() {}
 
   io.set('browser client minification', true)
-    io.set('browser client cache', true)
-    io.set('browser client gzip', true)
+  io.set('browser client cache', true)
+  io.set('browser client gzip', true)
 
-    io.sockets.on('connection', function(socket) {
-      socket.emit('established')
+  io.sockets.on('connection', function(socket) {
+    socket.emit('established')
 
-      socket.on('nextSlide', function(data, ack) {
-        io.sockets.emit('nextSlide')
-      })
-      socket.on('prevSlide', function(data, ack) {
-        io.sockets.emit('prevSlide')
-      })
-
-      user_sockets(socket, io)
+    // Note: event names can be anything inside the string
+    //       socket.on('jump to next slide', ...)
+    socket.on('nextSlide', function(data, ack) {
+      io.sockets.emit('nextSlide')
+    })
+    socket.on('prevSlide', function(data, ack) {
+      io.sockets.emit('prevSlide')
+    })
+    socket.on('remoteReady', function(data, ack) {
+      io.sockets.emit('remoteConnected');
     })
 
+    user_sockets(socket, io)
+  })
+
+  // Nearly everything down from here is shamelessly adapted from connect-livereload
   function socketIOSnippet() {
     return [
       '<!-- socket.io websockets -->',
@@ -45,7 +51,6 @@ module.exports = function bespokeRemote(opts) {
     ].join('\n')
   }
 
-  // Shamelessly ripped and adapted from connect-livereload
   function bodyExists(body) {
     if (!body) return false
     return ~body.lastIndexOf('</body>')
@@ -70,6 +75,17 @@ module.exports = function bespokeRemote(opts) {
       return next()
     }
 
+    if (req.url === '/remote/') {
+      var remote_html = fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8')
+      // Override push so we don't give connect-livereload a change to manipulate
+      // the html.
+      res.push = function(chunk) { res.data = remote_html }
+      // Write our html and end this response cycle
+      res.end(remote_html)
+      // No next() because nothing shall be run after us, ceiling cat spoketh!
+      return
+    }
+
     // Only redefine this if connect-livereload has not run before us.
     if (!res.push) {
       res.push = function(chunk) {
@@ -84,6 +100,7 @@ module.exports = function bespokeRemote(opts) {
         if ((bodyExists(content) || bodyExists(res.data)) &&
               !socketIOExists(content) &&
               (!res.data || !socketIOExists(res.data))) {
+          // Add socket.io *before* bespoke itself, after bespoke add the receiver plugin
           res.push(content.replace(/<script.+bespoke(.min)?.js.+?>\s*<\/script>/, function(bespoke) {
             return socketIOSnippet() + bespoke + receiverSnippet()
           }))
@@ -95,9 +112,10 @@ module.exports = function bespokeRemote(opts) {
       return true
     }
 
-    // Only redefine this if connect-livereload has not run before us.
-    // Also, if we would override this again, we would inject the whole
-    // body twice.
+    // If we redefine this we add the body a second time.
+    // This happesn due to connect-livereload already overriding this.
+    // TODO: would be cool to find out if this was already overwritten, if yes
+    //       by who and then act on that.
     if (!res.end) {
       res.end = function(string, encoding) {
         res.writeHead = writeHead

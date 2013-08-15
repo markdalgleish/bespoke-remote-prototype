@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"  content="width=device-width" />
+    <title>Bespoke Remote Control</title>
+    <style>
+      /* Optimised for iphone 5 screen */
+      #next {
+        padding: 6em 10em;
+        background: rgb(1, 211, 255);
+        border: 0;
+        position: absolute;
+        bottom: 50px;
+        right: 0;
+      }
+      #next:active { background: #00ADD1; }
+      #prev {
+        padding: 2em 1em;
+        background: rgb(211, 52, 55);
+        position: absolute;
+        bottom: 50px;
+        left: 0;
+        border: 0;
+      }
+      #prev:active { background: #992224; }
+    </style>
+</head>
+<body>
+    <!-- You don't usually have JS console on your smartphone/tablet
+         thats why we have a "debug window" here -->
+    <div id="debug"></div>
+
+    <button id="next">Next</button>
+    <button id="prev">Previous</button>
+
+    <script src="http://localhost:8001/socket.io/socket.io.v0.9.15.js"></script>
+    <script>
+      var debug = document.getElementById('debug'),
+          log = function (msg) { debug.innerHTML += '<p>'+msg+'</p>'; }
+
+      log('Started...')
+
+      var socket = io.connect('http://localhost:8001/')
+      socket.on('established', function() {
+        log('&#9733; Connection established.')
+        socket.emit('remoteReady', '');
+      })
+
+      document.getElementById('next').addEventListener('click', function(e) {
+        socket.emit('nextSlide', '')
+      })
+      document.getElementById('prev').addEventListener('click', function(e) {
+        socket.emit('prevSlide', '')
+      })
+    </script>
+</body>
+</html>
