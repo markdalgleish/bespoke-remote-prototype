@@ -62,8 +62,8 @@ module.exports = function bespokeRemote(opts) {
     return ~body.lastIndexOf('/socket.io/socket.io')
   }
   function isHTML(req) {
-    // Request URL ending with '/' or .html is hopefully.. well.. HTML
-    return /(\/|\.html)$/.test(req.url)
+    // Request URL ending with '/' or .html, or not containing a '.', is hopefully.. well.. HTML
+    return /(\/|\.html)$/.test(req.url) || !/\./.test(req.url);
   }
 
   return function bespokeRemoteMiddleware(req, res, next) {
@@ -75,7 +75,7 @@ module.exports = function bespokeRemote(opts) {
       return next()
     }
 
-    if (req.url === '/remote/') {
+    if (/^\/remote($|\/)/.test(req.url)) {
       var remote_html = fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8')
       // Override push so we don't give connect-livereload a change to manipulate
       // the html.
