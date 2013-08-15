@@ -1,0 +1,11 @@
+{
+  "name": "bespoke-remote",
+  "description": "A connect middleware which acts as remote control for bespoke.js presentations.",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "connect": "*",
+    "socket.io": "*"
+  }
+}
+
