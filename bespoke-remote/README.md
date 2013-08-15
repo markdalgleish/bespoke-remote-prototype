@@ -20,6 +20,21 @@ middleware: function(connect, options) {
 }
 ```
 
+Then open up your bespoke initialisation javascript and add tell it to run the
+`receiver` plugin:
+
+```javascript
+bespoke.horizontal.from('article', {
+  bullets: 'li, .bullet',
+  hash: true,
+  state: true,
+  receiver: true  // <-- Here we go!
+});
+```
+
+After this run your server, visit [http://localhost:8000/remote/](http://localhost:8000/remote/)
+and control your bespoke deck.
+
 index.js
 --------
 

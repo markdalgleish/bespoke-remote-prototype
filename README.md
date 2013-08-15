@@ -10,6 +10,8 @@ You can also [watch this on youtube](http://www.youtube.com/watch?v=Tl6xg314M9M)
 (sorry for the stutter in gif and on youtube, but my old macbook can't seem to
 handle 3 windows with CSS3 transforms properly ;-))
 
+The detailed README can be found [here](bespoke-remote/)
+
 ## View slides locally
 
 First, ensure you have the following installed:
