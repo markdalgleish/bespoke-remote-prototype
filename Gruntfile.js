@@ -100,19 +100,7 @@ module.exports = function(grunt) {
               require('connect-livereload')({
                 port: config.watch.public.options.livereload
               }),
-              function(req, res, next) {
-                // TODO: connect-bespoke-remote
-
-                // [ ] Set up Socket.io
-
-                // [ ] Serve remote page at '/remote'
-
-                // [ ] Serve script for remote client
-
-                // [ ] Insert remote client and Socket.io scripts into page
-
-                next();
-              },
+              require('./bespoke-remote')(),
               connect.static(options.base)
             ];
           }
