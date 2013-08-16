@@ -52,15 +52,15 @@ Current options:
 
 ### Using userSockets ###
 
-Let's say you want to extend the `nextSlide` event and add a new event for the
+Let's say you want to extend the `bespoke-remote.next` event and add a new event for the
 server to handle.
 
 ```javascript
 var otherActions = function(socket, io) {
-  socket.off('nextSlide')  // Turn off default nextSlide handler.
-  socket.on('nextSlide', function(data, ack) {
-    io.sockets.emit('nextSlide')  // Broadcast to every connected client.
-    console.log('Successfully sent out "nextSlide" event')
+  socket.off('bespoke-remote.next')  // Turn off default handler.
+  socket.on('bespoke-remote.next', function(data, ack) {
+    io.sockets.emit('bespoke-remote.next')  // Broadcast to every connected client.
+    console.log('Successfully sent out "bespoke-remote.next" event')
   })
 
   socket.on('speakOutLoud', function(data, ack) {

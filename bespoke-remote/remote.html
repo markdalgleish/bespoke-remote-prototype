@@ -42,16 +42,16 @@
       log('Started...')
 
       var socket = io.connect('http://localhost:<%= port %>/')
-      socket.on('established', function() {
+      socket.on('bespoke-remote.established', function() {
         log('&#9733; Connection established.')
-        socket.emit('remoteReady', '');
+        socket.emit('bespoke-remote.ready', '');
       })
 
       document.getElementById('next').addEventListener('click', function(e) {
-        socket.emit('nextSlide', '')
+        socket.emit('bespoke-remote.next', '')
       })
       document.getElementById('prev').addEventListener('click', function(e) {
-        socket.emit('prevSlide', '')
+        socket.emit('bespoke-remote.prev', '')
       })
     </script>
 </body>

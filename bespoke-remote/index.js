@@ -18,18 +18,18 @@ module.exports = function bespokeRemote(options) {
   io.set('browser client gzip', true)
 
   io.sockets.on('connection', function(socket) {
-    socket.emit('established')
+    socket.emit('bespoke-remote.established')
 
     // Note: event names can be anything inside the string
     //       socket.on('jump to next slide', ...)
-    socket.on('nextSlide', function(data, ack) {
-      io.sockets.emit('nextSlide')
+    socket.on('bespoke-remote.next', function(data, ack) {
+      io.sockets.emit('bespoke-remote.next')
     })
-    socket.on('prevSlide', function(data, ack) {
-      io.sockets.emit('prevSlide')
+    socket.on('bespoke-remote.prev', function(data, ack) {
+      io.sockets.emit('bespoke-remote.prev')
     })
-    socket.on('remoteReady', function(data, ack) {
-      io.sockets.emit('remoteConnected');
+    socket.on('bespoke-remote.ready', function(data, ack) {
+      io.sockets.emit('bespoke-remote.connected');
     })
 
     user_sockets(socket, io)
