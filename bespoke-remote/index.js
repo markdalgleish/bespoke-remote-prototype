@@ -5,13 +5,15 @@ var fs = require('fs'),
 
 
 module.exports = function bespokeRemote(options) {
-  var config = _.extend({ port: 8001 }, options),
+  var config = _.extend({ port: 8001, remoteUrl: 'remote', }, options),
       // Need to start an extra server since grunt-connect does not pass on the
       // "server" to the middleware section of the Gruntfile task :(
       // Forking and pull request might be an option ;-)
       io = config.socketio || websockets.listen(config.port)
       // Option for users to extend the provided actions.
-      user_sockets = config.userSockets || function() {}
+      user_sockets = config.userSockets || function() {},
+      // Users can set their own remote control URL ("security by obscurity")
+      remote_url_rex = RegExp('^\/'+config.remoteUrl+'($|\/)')
 
   io.set('browser client minification', true)
   io.set('browser client cache', true)
@@ -81,7 +83,7 @@ module.exports = function bespokeRemote(options) {
       return next()
     }
 
-    if (/^\/remote($|\/)/.test(req.url)) {
+    if (remote_url_rex.test(req.url)) {
       var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
       // Override push so we don't give connect-livereload a change to manipulate
       // the html.

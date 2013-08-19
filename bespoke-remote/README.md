@@ -49,6 +49,12 @@ Current options:
   A function (receiving socket.io's `socket` as first and the complete `io`
   object as second argument). Here you may define your own callbacks for
   websocket events.
+* `remoteUrl`  
+  Default: `remote` (visiting [/remote/](http://localhost:8001/remote/) will get
+  the remote control)  
+  Set this to the URL you want the remote to be on. A simple and dumb "security
+  by obscurity" approach. F.e. settings this to `ctrl128e12f` would make the
+  remote accessible under [/ctrl128e12f/](http://localhost:80001/ctrl128e12f/).
 
 ### Using userSockets ###
 
