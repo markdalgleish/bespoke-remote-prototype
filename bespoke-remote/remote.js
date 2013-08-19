@@ -1,5 +1,5 @@
 +function(bespoke, window, document, undefined) {
-  bespoke.plugins.receiver = function(deck, options) {
+  bespoke.plugins.remote = function(deck, options) {
     var options = {} || options,
         socket = io.connect(options.socketUrl || 'http://localhost:<%= port %>/');
 

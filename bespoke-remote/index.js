@@ -54,7 +54,7 @@ module.exports = function bespokeRemote(options) {
     //       (or cache this) -- definitely, I'll get to this later ;) -MD
     return [
       '<script>',
-      interpolate(fs.readFileSync(path.join(__dirname, 'receiver.js'), 'utf8')),
+      interpolate(fs.readFileSync(path.join(__dirname, 'remote.js'), 'utf8')),
       '</script>'
     ].join('\n')
   }
