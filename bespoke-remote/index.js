@@ -71,8 +71,9 @@ module.exports = function bespokeRemote(options) {
   }
   function isHTML(req) {
     // Request URL ending with '/' or .html, or not containing a '.', is hopefully.. well.. HTML
-    return /(\/|\.html)$/.test(req.url) || !/\./.test(req.url);
+    return /(\/|\.html)$/.test(req.url) || !/\./.test(req.url)
   }
+
 
   return function bespokeRemoteMiddleware(req, res, next) {
     var writeHead = res.writeHead,
