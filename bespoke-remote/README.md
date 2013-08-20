@@ -21,14 +21,14 @@ middleware: function(connect, options) {
 ```
 
 Then open up your bespoke initialisation javascript and add tell it to run the
-`receiver` plugin:
+`remote` plugin:
 
 ```javascript
 bespoke.horizontal.from('article', {
   bullets: 'li, .bullet',
   hash: true,
   state: true,
-  receiver: true  // <-- Here we go!
+  remote: true  // <-- Here we go!
 });
 ```
 
@@ -38,7 +38,7 @@ and control your bespoke deck.
 index.js
 --------
 
-Contains the `connect` middleware. Currently it injects `socket.io` and the `receiver.js`.
+Contains the `connect` middleware. Currently it injects `socket.io` and the `remote.js`.
 
 Current options:
 
@@ -92,10 +92,10 @@ middleware: function(connect, options) {
 }
 ```
 
-receiver.js
+remote.js
 -----------
 
-Well, obviously the receiver for the remote control. `receiver` is a normal bespoke plugin.
+`remote` is a normal bespoke plugin that receives events sent from the remote server.
 
 Current options:
 
