@@ -1,10 +1,10 @@
 var fs = require('fs'),
     path = require('path'),
     _ = require('lodash'),
-    websockets = require('socket.io')
+    websockets = require('socket.io'),
+    inject = require('connect-injector');
 
-
-module.exports = function bespokeRemote(options) {
+module.exports = function(options) {
   var config = _.extend({ port: 8001, remoteUrl: 'remote', }, options),
       // Need to start an extra server since grunt-connect does not pass on the
       // "server" to the middleware section of the Gruntfile task :(
@@ -13,7 +13,9 @@ module.exports = function bespokeRemote(options) {
       // Option for users to extend the provided actions.
       user_sockets = config.userSockets || function() {},
       // Users can set their own remote control URL ("security by obscurity")
-      remote_url_rex = RegExp('^\/'+config.remoteUrl+'($|\/)')
+      remote_url_rex = RegExp('^\/'+config.remoteUrl+'($|\/)'),
+      remotePluginSnippet = ',remote: true',
+      bespokeJsRegExp = /(bespoke\.((horizontal|vertical)\.)?from)/;
 
   io.set('browser client minification', true)
   io.set('browser client cache', true)
@@ -37,53 +39,46 @@ module.exports = function bespokeRemote(options) {
     user_sockets(socket, io)
   })
 
-  // Nearly everything down from here is shamelessly adapted from connect-livereload
-  function interpolate(content) {
-    return _.template(content, {
-      port: config.port
-    });
-  }
   function socketIOSnippet() {
     return [
       '<!-- socket.io websockets -->',
       '<script src="http://localhost:' + config.port + '/socket.io/socket.io.v0.9.15.js"></script>',
       ].join('\n')
   }
-  function receiverSnippet() {
+
+  function receiverSnippet(isScriptBlock) {
     // NOTE: Would it make sense to use the async read method?
     //       (or cache this) -- definitely, I'll get to this later ;) -MD
     return [
-      '<script>',
+      isScriptBlock ? '<script>' : '',
       interpolate(fs.readFileSync(path.join(__dirname, 'remote.js'), 'utf8')),
-      '</script>'
+      isScriptBlock ? '</script>' : '',
     ].join('\n')
   }
 
-  function bodyExists(body) {
-    if (!body) return false
-    return ~body.lastIndexOf('</body>')
-  }
-  function socketIOExists(body) {
-    if (!body) return true
-    // Leave off the version string since it might be possible that the
-    // user already included a version.
-    return ~body.lastIndexOf('/socket.io/socket.io')
-  }
-  function isHTML(req) {
-    // Request URL ending with '/' or .html, or not containing a '.', is hopefully.. well.. HTML
-    return /(\/|\.html)$/.test(req.url) || !/\./.test(req.url)
+  function interpolate(content) {
+    return _.template(content, {
+      port: config.port
+    });
   }
 
+  function isCleanBespokeJS(res, data) {
+    return /application\/javascript/.test(res.getHeader('content-type')) &&
+      bespokeJsRegExp.test(data.toString()) &&
+      data.toString().indexOf(remotePluginSnippet) === -1 &&
+      data.toString().indexOf(socketIOSnippet()) === -1;
+  }
 
-  return function bespokeRemoteMiddleware(req, res, next) {
-    var writeHead = res.writeHead,
-        write = res.write,
-        end = res.end
+  function isCleanHTML(res, data) {
+    return /text\/html/.test(res.getHeader('content-type')) &&
+      data.toString().indexOf(receiverSnippet()) === -1;
+  }
 
-    if (!isHTML(req)) {
-      return next()
-    }
-
+  var injector = inject(function when(req, res) {
+    // This used to be conditional using 'isCleanFooBar' fns, but any response
+    // after the first response would be blank. Fix later, or leave it?
+    return true;
+  }, function converter(callback, data, req, res) {
     if (remote_url_rex.test(req.url)) {
       var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
       // Override push so we don't give connect-livereload a change to manipulate
@@ -95,49 +90,30 @@ module.exports = function bespokeRemote(options) {
       return
     }
 
-    // Only redefine this if connect-livereload has not run before us.
-    if (!res.push) {
-      res.push = function(chunk) {
-        res.data = (res.data || '') + chunk
-      }
+    if (isCleanHTML(res, data)) {
+      callback(null, data.toString().replace(/(<script)/, socketIOSnippet() + '$1'));
+    } else if (isCleanBespokeJS(res, data)) {
+      callback(null, data.toString()
+        .replace(bespokeJsRegExp, receiverSnippet() + '$1')
+        .replace(/(bespoke\.((horizontal|vertical)\.)?from\(['"].+['"],\s?{[\Wa-z]+)(})/, '$1' + remotePluginSnippet + '$4')
+      );
+    } else {
+      callback(null, data);
     }
+  });
 
-    res.inject = res.write = function(string, encoding) {
-      res.write = write
-      if (string !== undefined) {
-        var content = string instanceof Buffer ? string.toString(encoding) : string
-        if ((bodyExists(content) || bodyExists(res.data)) &&
-              !socketIOExists(content) &&
-              (!res.data || !socketIOExists(res.data))) {
-          // Add socket.io *before* bespoke itself, after bespoke add the receiver plugin
-          res.push(content.replace(/<script.+bespoke(.min)?.js.+?>\s*<\/script>/, function(bespoke) {
-            return socketIOSnippet() + bespoke + receiverSnippet()
-          }))
-          return true
-        } else {
-          return res.write(string, encoding)
-        }
-      }
-      return true
+  return function bespokeRemoteMiddleware(req, res, next) {
+    if (remote_url_rex.test(req.url)) {
+      var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
+      // Override push so we don't give connect-livereload a change to manipulate
+      // the html.
+      res.push = function(chunk) { res.data = remote_html }
+      // Write our html and end this response cycle
+      res.end(remote_html)
+      // No next() because nothing shall be run after us, ceiling cat spoketh!
+      return
+    } else {
+      injector(req, res, next);
     }
-
-    // If we redefine this we add the body a second time.
-    // This happesn due to connect-livereload already overriding this.
-    // TODO: would be cool to find out if this was already overwritten, if yes
-    //       by who and then act on that.
-    if (!res.end) {
-      res.end = function(string, encoding) {
-        res.writeHead = writeHead
-        res.end = end
-        var result = res.inject(string, encoding)
-        if (!result) return res.end(string, encoding)
-        if (res.data !== undefined && !res._header) {
-          res.setHeader('content-length', Buffer.byteLength(res.data, encoding))
-        }
-        res.end(res.data, encoding)
-      }
-    }
-
-    next()
-  }
-}
+  };
+};

@@ -97,11 +97,11 @@ module.exports = function(grunt) {
           keepalive: true,
           middleware: function(connect, options) {
             return [
-              require('connect-livereload')({
-                port: config.watch.public.options.livereload
-              }),
               require('./bespoke-remote')({
                 port: 8001
+              }),
+              require('connect-livereload')({
+                port: config.watch.public.options.livereload
               }),
               connect.static(options.base)
             ];
