@@ -111,6 +111,9 @@ module.exports = function(grunt) {
       }
     },
     open: {
+      remote: {
+        path: 'http://localhost:<%= connect.server.options.port %>/remote'
+      },
       server: {
         path: 'http://localhost:<%= connect.server.options.port %>'
       }
@@ -130,7 +133,7 @@ module.exports = function(grunt) {
       server: {
         tasks: [
           'connect',
-          'open',
+          'open' + (grunt.option('remote') ? '' : ':server'),
           'watch:jade',
           'watch:stylus',
           'watch:coffee',
