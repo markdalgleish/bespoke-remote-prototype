@@ -96,15 +96,16 @@ module.exports = function(grunt) {
           base: 'public',
           keepalive: true,
           middleware: function(connect, options) {
-            return [
-              require('./bespoke-remote')({
-                port: 8001
-              }),
-              require('connect-livereload')({
-                port: config.watch.public.options.livereload
-              }),
-              connect.static(options.base)
-            ];
+            return (!grunt.option('remote') ? [] : [
+                require('./bespoke-remote')({
+                  port: 8001
+                })
+              ]).concat([
+                require('connect-livereload')({
+                  port: config.watch.public.options.livereload
+                }),
+                connect.static(options.base)
+              ]);
           }
         }
       }
