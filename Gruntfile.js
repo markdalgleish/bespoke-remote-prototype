@@ -171,7 +171,7 @@ module.exports = function(grunt) {
   grunt.loadTasks('./bespoke-remote/tasks');
 
   grunt.registerTask('default', ['clean', 'concurrent:compile']);
-  grunt.registerTask('server', ['default', 'concurrent:server', 'findip']);
+  grunt.registerTask('server', ['default', 'concurrent:server']);
   grunt.registerTask('deploy', ['default', 'gh-pages:public']);
 
 };
