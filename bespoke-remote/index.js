@@ -2,7 +2,10 @@ var fs = require('fs'),
     path = require('path'),
     _ = require('lodash'),
     websockets = require('socket.io'),
-    inject = require('connect-injector');
+    inject = require('connect-injector'),
+    esprima = require('esprima'),
+    esquery = require('esquery'),
+    escodegen = require('escodegen');
 
 module.exports = function(options) {
   var config = _.extend({ port: 8001, remoteUrl: 'remote', }, options),
@@ -79,6 +82,8 @@ module.exports = function(options) {
     // after the first response would be blank. Fix later, or leave it?
     return true;
   }, function converter(callback, data, req, res) {
+    var ast;
+
     if (remote_url_rex.test(req.url)) {
       var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
       // Override push so we don't give connect-livereload a change to manipulate
@@ -93,10 +98,19 @@ module.exports = function(options) {
     if (isCleanHTML(res, data)) {
       callback(null, data.toString().replace(/(<script)/, socketIOSnippet() + '$1'));
     } else if (isCleanBespokeJS(res, data)) {
-      callback(null, data.toString()
-        .replace(bespokeJsRegExp, receiverSnippet() + '$1')
-        .replace(/(bespoke\.((horizontal|vertical)\.)?from\(['"].+['"],\s?{[\Wa-z]+)(})/, '$1' + remotePluginSnippet + '$4')
-      );
+      ast = esprima.parse(data.toString());
+      esquery(ast, '[expression.callee.object.object.name=bespoke] [arguments] [type=ObjectExpression]').forEach(function(pluginsNode) {
+        pluginsNode.properties.push(
+          esprima.parse('({remote:true})').body[0].expression.properties[0]
+        );
+      });
+      callback(null, escodegen.generate(ast, {
+          format: {
+            indent: {
+              style: '  '
+            }
+          }
+        }).replace(bespokeJsRegExp, receiverSnippet() + '$1'));
     } else {
       callback(null, data);
     }
