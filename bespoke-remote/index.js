@@ -99,10 +99,17 @@ module.exports = function(options) {
       callback(null, data.toString().replace(/(<script)/, socketIOSnippet() + '$1'));
     } else if (isCleanBespokeJS(res, data)) {
       ast = esprima.parse(data.toString());
-      esquery(ast, '[expression.callee.object.object.name=bespoke] [arguments] [type=ObjectExpression]').forEach(function(pluginsNode) {
-        pluginsNode.properties.push(
-          esprima.parse('({remote:true})').body[0].expression.properties[0]
-        );
+      esquery(ast, '[expression.callee.object.object.name=bespoke] > [arguments]').forEach(function(callExpression) {
+        var args = callExpression.arguments,
+          secondArg = callExpression.arguments[1],
+          pluginsObjectWithRemote = esprima.parse('({remote:true})').body[0].expression,
+          remotePluginProperty = pluginsObjectWithRemote.properties[0];
+
+        if (args.length === 2 && _.isObject(secondArg) && _.isArray(secondArg.properties)) {
+          secondArg.properties.push(remotePluginProperty);
+        } else if (args.length === 1) {
+          args.push(pluginsObjectWithRemote);
+        }
       });
       callback(null, escodegen.generate(ast, {
           format: {
