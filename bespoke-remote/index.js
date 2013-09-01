@@ -2,7 +2,7 @@ var fs = require('fs'),
     path = require('path'),
     _ = require('lodash'),
     websockets = require('socket.io'),
-    inject = require('connect-injector'),
+    assetManager = require('connect-assetmanager'),
     esprima = require('esprima'),
     esquery = require('esquery'),
     escodegen = require('escodegen');
@@ -65,40 +65,12 @@ module.exports = function(options) {
     });
   }
 
-  function isCleanBespokeJS(res, data) {
-    return /application\/javascript/.test(res.getHeader('content-type')) &&
-      bespokeJsRegExp.test(data.toString()) &&
-      data.toString().indexOf(remotePluginSnippet) === -1 &&
-      data.toString().indexOf(socketIOSnippet()) === -1;
+  function modifyHTML(src) {
+    return src.replace(/(<script)/, socketIOSnippet() + '$1');
   }
 
-  function isCleanHTML(res, data) {
-    return /text\/html/.test(res.getHeader('content-type')) &&
-      data.toString().indexOf(receiverSnippet()) === -1;
-  }
-
-  var injector = inject(function when(req, res) {
-    // This used to be conditional using 'isCleanFooBar' fns, but any response
-    // after the first response would be blank. Fix later, or leave it?
-    return true;
-  }, function converter(callback, data, req, res) {
-    var ast;
-
-    if (remote_url_rex.test(req.url)) {
-      var remote_html = interpolate(fs.readFileSync(path.join(__dirname, 'remote.html'), 'utf8'))
-      // Override push so we don't give connect-livereload a change to manipulate
-      // the html.
-      res.push = function(chunk) { res.data = remote_html }
-      // Write our html and end this response cycle
-      res.end(remote_html)
-      // No next() because nothing shall be run after us, ceiling cat spoketh!
-      return
-    }
-
-    if (isCleanHTML(res, data)) {
-      callback(null, data.toString().replace(/(<script)/, socketIOSnippet() + '$1'));
-    } else if (isCleanBespokeJS(res, data)) {
-      ast = esprima.parse(data.toString());
+  function modifyJS(src) {
+    var ast = esprima.parse(src);
       esquery(ast, '[expression.callee.object.object.name=bespoke] > [arguments]').forEach(function(callExpression) {
         var args = callExpression.arguments,
           secondArg = callExpression.arguments[1],
@@ -111,15 +83,42 @@ module.exports = function(options) {
           args.push(pluginsObjectWithRemote);
         }
       });
-      callback(null, escodegen.generate(ast, {
+
+      return escodegen.generate(ast, {
           format: {
             indent: {
               style: '  '
             }
           }
-        }).replace(bespokeJsRegExp, receiverSnippet() + '$1'));
-    } else {
-      callback(null, data);
+        }).replace(bespokeJsRegExp, receiverSnippet() + '$1');
+  }
+
+  var assetManagerMiddleware = assetManager({
+    html: {
+      route: options.html.route,
+      path: options.html.path,
+      dataType: 'html',
+      files: [options.html.file],
+      preManipulate: {
+        '^': [
+          function(file, path, index, isLast, callback) {
+            callback(modifyHTML(file));
+          }
+        ]
+      }
+    },
+    js: {
+      route: options.js.route,
+      path: options.js.path,
+      dataType: 'javascript',
+      files: [options.js.file],
+      preManipulate: {
+        '^': [
+          function(file, path, index, isLast, callback) {
+            callback(modifyJS(file));
+          }
+        ]
+      }
     }
   });
 
@@ -134,7 +133,7 @@ module.exports = function(options) {
       // No next() because nothing shall be run after us, ceiling cat spoketh!
       return
     } else {
-      injector(req, res, next);
+      assetManagerMiddleware(req, res, next);
     }
   };
 };

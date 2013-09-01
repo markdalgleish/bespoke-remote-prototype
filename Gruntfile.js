@@ -98,7 +98,17 @@ module.exports = function(grunt) {
           middleware: function(connect, options) {
             return (!grunt.option('remote') ? [] : [
                 require('./bespoke-remote')({
-                  port: 8001
+                  port: 8001,
+                  html: {
+                    route: /^\/(index.html)?$/,
+                    path: './public/',
+                    file: 'index.html'
+                  },
+                  js: {
+                    route: /^\/scripts\/main\.js$/,
+                    path: './public/scripts/',
+                    file: 'main.js'
+                  }
                 })
               ]).concat([
                 require('connect-livereload')({
@@ -111,11 +121,11 @@ module.exports = function(grunt) {
       }
     },
     open: {
-      remote: {
-        path: 'http://localhost:<%= connect.server.options.port %>/remote'
-      },
       server: {
         path: 'http://localhost:<%= connect.server.options.port %>'
+      },
+      remote: {
+        path: 'http://localhost:<%= connect.server.options.port %>/remote'
       }
     },
     concurrent: {
