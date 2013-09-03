@@ -20,9 +20,13 @@ module.exports = function(options) {
       remotePluginSnippet = ',remote: true',
       bespokeJsRegExp = /(bespoke\.((horizontal|vertical)\.)?from)/;
 
-  io.set('browser client minification', true)
-  io.set('browser client cache', true)
-  io.set('browser client gzip', true)
+  io.enable('browser client minification')
+  io.enable('browser client cache')
+  io.enable('browser client etag')
+  io.enable('browser client gzip')
+
+  io.set('heartbeat timeout', 30)
+  io.set('heartbeat interval', 15)
 
   io.sockets.on('connection', function(socket) {
     socket.emit('bespoke-remote.established')
