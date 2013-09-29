@@ -24,10 +24,35 @@
         border: 0;
       }
       #prev:active { background: #992224; }
+      iframe {
+        display: none;
+        position: absolute;
+        border: 0;
+      }
 
       @media only screen and (min-width: 1024px) {
         #debug {
           display: none;
+        }
+
+        iframe {
+          display: block;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.025);
+          border: 1px solid white;
+        }
+
+        iframe.present {
+          top: 10px;
+          left: 10px;
+          width: 640px;
+          height: 480px;
+        }
+
+        iframe.future {
+          top: 10px;
+          right: 10px;
+          width: 320px;
+          height: 240px;
         }
       }
     </style>
@@ -40,8 +65,16 @@
     <button id="next">Next</button>
     <button id="prev">Previous</button>
 
+    <iframe class="present" id="presentFrame" src="http://localhost:8000"></iframe>
+    <iframe class="future" id="futureFrame" src="http://localhost:8000"></iframe>
+
     <script src="http://localhost:<%= port %>/socket.io/socket.io.v0.9.15.js"></script>
     <script>
+      var futureFrameWindow = document.getElementById('futureFrame').contentWindow;
+      futureFrameWindow.addEventListener('DOMContentLoaded', function() {
+        futureFrameWindow.bespoke.next();
+      });
+
       var debug = document.getElementById('debug'),
           log = function (msg) {
             debug.innerHTML += '<p>'+msg+'</p>';
