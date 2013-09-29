@@ -24,6 +24,12 @@
         border: 0;
       }
       #prev:active { background: #992224; }
+
+      @media only screen and (min-width: 1024px) {
+        #debug {
+          display: none;
+        }
+      }
     </style>
 </head>
 <body>
@@ -37,13 +43,18 @@
     <script src="http://localhost:<%= port %>/socket.io/socket.io.v0.9.15.js"></script>
     <script>
       var debug = document.getElementById('debug'),
-          log = function (msg) { debug.innerHTML += '<p>'+msg+'</p>'; }
+          log = function (msg) {
+            debug.innerHTML += '<p>'+msg+'</p>';
+            if (window.console && console.log) {
+              console.log(msg);
+            }
+          }
 
       log('Started...')
 
       var socket = io.connect('http://localhost:<%= port %>/')
       socket.on('bespoke-remote.established', function() {
-        log('&#9733; Connection established.')
+        log('\u2605 Connection established.')
         socket.emit('bespoke-remote.ready', '');
       })
 
