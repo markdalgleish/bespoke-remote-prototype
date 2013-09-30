@@ -6,24 +6,88 @@
     <title>Bespoke Remote Control</title>
     <style>
       /* Optimised for iphone 5 screen */
-      #next {
-        padding: 6em 10em;
-        background: rgb(1, 211, 255);
+      button {
+        font-family: helvetica neue, helvetica, arial, sans-serif;
+        font-weight: 200;
         border: 0;
-        position: absolute;
-        bottom: 50px;
-        right: 0;
+        color: white;
+        cursor: pointer;
       }
-      #next:active { background: #00ADD1; }
-      #prev {
-        padding: 2em 1em;
+      button:active {
+        box-shadow: 0;
+        box-shadow: none !important;
+      }
+
+      button.primary {
+        text-shadow: 0 -2px 0 #4D6C85;
+        box-shadow: 0 3px 0 #4D6C85;
+        background: #0089F3;
+      }
+      button.primary:active {
+        -webkit-transform: translateY(3px);
+        -moz-transform: translateY(3px);
+        -ms-transform: translateY(3px);
+        -o-transform: translateY(3px);
+        transform: translateY(3px);
+      }
+
+      button.secondary {
+        text-shadow: 0 -2px 0 #961719;
+        box-shadow: 0 3px 0 #961719;
         background: rgb(211, 52, 55);
-        position: absolute;
-        bottom: 50px;
-        left: 0;
-        border: 0;
       }
-      #prev:active { background: #992224; }
+      button.secondary:active {
+        -webkit-transform: translateY(3px);
+        -moz-transform: translateY(3px);
+        -ms-transform: translateY(3px);
+        -o-transform: translateY(3px);
+        transform: translateY(3px);
+      }
+
+      button.tertiary {
+        text-shadow: 0 -2px 0 #303030;
+        box-shadow: 0 3px 0 #303030;
+        background: #606060;
+      }
+      button.tertiary:active {
+        -webkit-transform: translateY(3px);
+        -moz-transform: translateY(3px);
+        -ms-transform: translateY(3px);
+        -o-transform: translateY(3px);
+        transform: translateY(3px);
+      }
+
+      button.big {
+        height: 120px;
+        width: 240px;
+        line-height: 100px;
+        border-radius: 8px;
+        font-size: 34px;
+      }
+
+      button.small {
+        height: 50px;
+        width: 100px;
+        line-height: 40px;
+        border-radius: 8px;
+        font-size: 18px;
+      }
+
+      #next {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+      }
+      #prev {
+        position: absolute;
+        bottom: 90px;
+        left: 20px;
+      }
+      #reset {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+      }
       iframe {
         display: none;
         position: absolute;
@@ -42,15 +106,15 @@
         }
 
         iframe.present {
-          top: 10px;
-          left: 10px;
+          top: 20px;
+          left: 20px;
           width: 640px;
           height: 480px;
         }
 
         iframe.future {
-          top: 10px;
-          right: 10px;
+          top: 20px;
+          right: 20px;
           width: 320px;
           height: 240px;
         }
@@ -62,15 +126,19 @@
          thats why we have a "debug window" here -->
     <div id="debug"></div>
 
-    <button id="next">Next</button>
-    <button id="prev">Previous</button>
+    <button id="next" class="big primary">Next</button>
+    <button id="prev" class="small secondary">Previous</button>
+
+    <button id="reset" class="small tertiary">Reset</button>
 
     <iframe class="present" id="presentFrame" src="http://localhost:8000"></iframe>
-    <iframe class="future" id="futureFrame" src="http://localhost:8000"></iframe>
+    <iframe class="future" id="futureFrame" src="http://localhost:8000#bespoke-remote-future"></iframe>
 
     <script src="http://localhost:<%= port %>/socket.io/socket.io.v0.9.15.js"></script>
     <script>
-      var futureFrameWindow = document.getElementById('futureFrame').contentWindow;
+      var presentFrameWindow = document.getElementById('presentFrame').contentWindow,
+        futureFrameWindow = document.getElementById('futureFrame').contentWindow;
+
       futureFrameWindow.addEventListener('DOMContentLoaded', function() {
         futureFrameWindow.bespoke.next();
       });
@@ -91,12 +159,17 @@
         socket.emit('bespoke-remote.ready', '');
       })
 
+      var reset = function() {
+        socket.emit('bespoke-remote.reset', '');
+      };
+
       document.getElementById('next').addEventListener('click', function(e) {
         socket.emit('bespoke-remote.next', '')
       })
       document.getElementById('prev').addEventListener('click', function(e) {
         socket.emit('bespoke-remote.prev', '')
       })
+      document.getElementById('reset').addEventListener('click', reset);
 
       document.addEventListener('keydown', function(e) {
         (

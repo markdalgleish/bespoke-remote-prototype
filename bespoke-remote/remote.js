@@ -1,4 +1,6 @@
 +function(bespoke, window, document, undefined) {
+  var isFutureFrame = location.hash === '#bespoke-remote-future';
+
   bespoke.plugins.remote = function(deck, options) {
     var options = {} || options,
         socket = io.connect(options.socketUrl || 'http://localhost:<%= port %>/'),
@@ -16,6 +18,10 @@
       console.info('Paired with remote control. Happy RCing!')
       indicator.classList.add('bespoke-remote-indicator-connected');
     })
+    socket.on('bespoke-remote.reset', function() {
+      deck.slide(0);
+      isFutureFrame && deck.next();
+    });
 
     socket.on('bespoke-remote.next', deck.next);
     socket.on('bespoke-remote.prev', deck.prev);
