@@ -97,6 +97,18 @@
       document.getElementById('prev').addEventListener('click', function(e) {
         socket.emit('bespoke-remote.prev', '')
       })
+
+      document.addEventListener('keydown', function(e) {
+        (
+          e.which == 34 || // PAGE DOWN
+          e.which == 32 || // SPACE
+          e.which == 39    // RIGHT
+        ) && socket.emit('bespoke-remote.next', '');
+        (
+          e.which == 33 || // PAGE UP
+          e.which == 37    // LEFT
+        ) && socket.emit('bespoke-remote.prev', '');
+      });
     </script>
 </body>
 </html>
