@@ -5,10 +5,11 @@
     <meta name="viewport"  content="width=device-width" />
     <title>Bespoke Remote Control</title>
     <style>
-      /* Optimised for iphone 5 screen */
-      button {
+      body {
         font-family: helvetica neue, helvetica, arial, sans-serif;
         font-weight: 200;
+      }
+      button {
         border: 0;
         color: white;
         cursor: pointer;
@@ -80,18 +81,38 @@
       }
       #prev {
         position: absolute;
-        bottom: 90px;
+        bottom: 20px;
         left: 20px;
       }
       #reset {
         position: absolute;
-        bottom: 20px;
+        bottom: 90px;
         left: 20px;
       }
       iframe {
         display: none;
         position: absolute;
-        border: 0;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.025);
+        border: 1px solid white;
+      }
+
+      .timer {
+        position: absolute;
+        left: 20px;
+        bottom: 160px;
+        font-size: 62px;
+        line-height: 62px;
+        color: #d0d0d0;
+      }
+      .timer.active {
+        color: #505050;
+      }
+
+      @media only screen and (min-width: 674px) {
+        .timer {
+          bottom: 82px;
+          left: 140px;
+        }
       }
 
       @media only screen and (min-width: 1024px) {
@@ -101,8 +122,6 @@
 
         iframe {
           display: block;
-          box-shadow: 0 5px 20px rgba(0,0,0,0.025);
-          border: 1px solid white;
         }
 
         iframe.present {
@@ -129,7 +148,8 @@
     <button id="next" class="big primary">Next</button>
     <button id="prev" class="small secondary">Previous</button>
 
-    <button id="reset" class="small tertiary">Reset</button>
+    <button id="reset" class="small tertiary">Start</button>
+    <div class="timer"></div>
 
     <iframe class="present" id="presentFrame" src="http://localhost:8000"></iframe>
     <iframe class="future" id="futureFrame" src="http://localhost:8000#bespoke-remote-future"></iframe>
@@ -153,6 +173,39 @@
 
       log('Started...')
 
+      var timer = (function() {
+        var startTime,
+          timerEl = document.querySelector('.timer'),
+
+          resetTimer = function() {
+            startTime = new Date().getTime();
+            timerEl.classList.add('active');
+          },
+
+          format = function(ms) {
+            var leadingZero = function(n) { return n < 10 ? '0' + n : '' + n; },
+              modulus = function(i) { return function(n) { return n % i; } },
+              s = ms / 1000,
+              m = s / 60,
+              h = m / 60;
+
+            return [h, m, s]
+              .map(Math.floor)
+              .map(modulus(60))
+              .map(leadingZero)
+              .join(':');
+          };
+
+        (function tick() {
+          window.requestAnimationFrame(tick);
+          timerEl.innerHTML = format(startTime === undefined ? 0 : new Date().getTime() - startTime);
+        }());
+
+        return {
+          reset: resetTimer
+        }
+      }());
+
       var socket = io.connect('http://localhost:<%= port %>/')
       socket.on('bespoke-remote.established', function() {
         log('\u2605 Connection established.')
@@ -160,7 +213,9 @@
       })
 
       var reset = function() {
+        document.getElementById('reset').innerHTML = 'Reset';
         socket.emit('bespoke-remote.reset', '');
+        timer.reset();
       };
 
       document.getElementById('next').addEventListener('click', function(e) {
