@@ -9,6 +9,9 @@
         font-family: helvetica neue, helvetica, arial, sans-serif;
         font-weight: 200;
       }
+      p {
+        margin: 0;
+      }
       button {
         border: 0;
         color: white;
@@ -108,10 +111,36 @@
         color: #505050;
       }
 
+      #debug {
+        padding: 20px;
+        background: #EAEAEA;
+        position: absolute;
+        height: 16px;
+        overflow: auto;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+      }
+
+      .notes {
+        position: absolute;
+        z-index: 999;
+        padding: 20px;
+        top: 97px;
+        right: 20px;
+        left: 20px;
+        background: #EAEAEA;
+        bottom: 240px;
+      }
+
       @media only screen and (min-width: 674px) {
         .timer {
           bottom: 82px;
           left: 140px;
+        }
+
+        .notes {
+          bottom: 170px;
         }
       }
 
@@ -132,10 +161,16 @@
         }
 
         iframe.future {
-          top: 20px;
+          bottom: 160px;
           right: 20px;
           width: 320px;
           height: 240px;
+        }
+
+        .notes {
+          left: 690px;
+          bottom: 420px;
+          top: 20px;
         }
       }
     </style>
@@ -151,6 +186,8 @@
     <button id="reset" class="small tertiary">Start</button>
     <div class="timer"></div>
 
+    <div class="notes"></div>
+
     <iframe class="present" id="presentFrame" src="http://localhost:8000"></iframe>
     <iframe class="future" id="futureFrame" src="http://localhost:8000#bespoke-remote-future"></iframe>
 
@@ -165,7 +202,7 @@
 
       var debug = document.getElementById('debug'),
           log = function (msg) {
-            debug.innerHTML += '<p>'+msg+'</p>';
+            debug.innerHTML = '<p>'+msg+'</p>';
             if (window.console && console.log) {
               console.log(msg);
             }
@@ -237,6 +274,14 @@
           e.which == 37    // LEFT
         ) && socket.emit('bespoke-remote.prev', '');
       });
+
+      (function() {
+        var output = document.querySelector('.notes');
+        socket.on('bespoke-remote.notes', function(notes) {
+          console.log('notes!', notes);
+          output.innerHTML = notes;
+        });
+      }());
     </script>
 </body>
 </html>

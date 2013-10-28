@@ -45,6 +45,9 @@ module.exports = function(options) {
     socket.on('bespoke-remote.reset', function(data, ack) {
       io.sockets.emit('bespoke-remote.reset');
     })
+    socket.on('bespoke-remote.notes', function(data, ack) {
+      io.sockets.emit('bespoke-remote.notes', data);
+    })
 
     user_sockets(socket, io)
   })

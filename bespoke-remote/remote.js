@@ -25,5 +25,12 @@
 
     socket.on('bespoke-remote.next', deck.next);
     socket.on('bespoke-remote.prev', deck.prev);
+
+    !isFutureFrame && deck.on('activate', function(e) {
+      var notes = [].slice.call(e.slide.children).reduce(function(acc, el){
+        return el.nodeName === 'ASIDE' ? el.innerHTML : acc;
+      }, '');
+      socket.emit('bespoke-remote.notes', notes);
+    });
   }
 }(bespoke, this, document)
