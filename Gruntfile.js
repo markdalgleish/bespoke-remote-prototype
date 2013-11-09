@@ -32,7 +32,7 @@ module.exports = function(grunt) {
   var local_ips = get_local_ips(),
       host_address = 'localhost'
 
-  if (local_ips.ipv4.length === 1) {
+  if (local_ips.ipv4.length === 1 && local_ips.ipv4[0]) {
     host_address = local_ips.ipv4[0]
   }
 
@@ -129,12 +129,13 @@ module.exports = function(grunt) {
       server: {
         options: {
           port: 8000,
-          hostname: host_address,
+          hostname: '0.0.0.0',
           base: 'public',
           keepalive: true,
           middleware: function(connect, options) {
             return (!grunt.option('remote') ? [] : [
                 require('./bespoke-remote')({
+                  hostname: host_address,
                   port: 8001,
                   html: {
                     route: /^\/(index.html)?$/,

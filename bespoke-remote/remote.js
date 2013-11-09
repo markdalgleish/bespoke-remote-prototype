@@ -3,7 +3,7 @@
 
   bespoke.plugins.remote = function(deck, options) {
     var options = {} || options,
-        socket = io.connect(options.socketUrl || 'http://localhost:<%= port %>/'),
+        socket = io.connect(options.socketUrl || 'http://<%= hostname %>:<%= port %>/'),
         indicator = document.createElement('div');
 
     indicator.className = 'bespoke-remote-indicator';
