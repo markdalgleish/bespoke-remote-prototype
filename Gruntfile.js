@@ -1,7 +1,43 @@
 // Generated on 2013-08-15 using generator-bespoke v0.1.1
+var os = require('os'),
+    http = require('http'),
+    _ = require('lodash')
+
 
 module.exports = function(grunt) {
+  // Let's check if we can find any local-network-wide IP address for us.
+  // If so, then we will use that IP to open the browser at this address.
+  // This way, if we have the /remote enabled, one can simply use f.e.
+  // Chrome's cross-device tab sync to open the /remote on the mobile device.
+  function get_local_ips() {
+    var interfaces = os.networkInterfaces(),
+        addresses_ipv4 = [],
+        addresses_ipv6 = []
 
+    _.forEach(interfaces, function(addresses) {
+      _.forEach(addresses, function(address) {
+        if (address.internal) {
+          return
+        }
+        if (address.family === 'IPv4') {
+          addresses_ipv4.push(address.address)
+        } else {
+          addresses_ipv6.push(address.address)
+        }
+      })
+    })
+    return { ipv4: addresses_ipv4, ipv6: addresses_ipv6, }
+  }
+
+  var local_ips = get_local_ips(),
+      host_address = 'localhost'
+
+  if (local_ips.ipv4.length === 1) {
+    host_address = local_ips.ipv4[0]
+  }
+
+
+  // Grunt tasks
   var config = {
     clean: {
       public: 'public/**/*'
@@ -93,6 +129,7 @@ module.exports = function(grunt) {
       server: {
         options: {
           port: 8000,
+          hostname: host_address,
           base: 'public',
           keepalive: true,
           middleware: function(connect, options) {
@@ -115,17 +152,17 @@ module.exports = function(grunt) {
                   port: config.watch.public.options.livereload
                 }),
                 connect.static(options.base)
-              ]);
+              ])
           }
         }
       }
     },
     open: {
       server: {
-        path: 'http://localhost:<%= connect.server.options.port %>'
+        path: 'http://' + host_address + ':<%= connect.server.options.port %>'
       },
       remote: {
-        path: 'http://localhost:<%= connect.server.options.port %>/remote'
+        path: 'http://' + host_address + ':<%= connect.server.options.port %>/remote'
       }
     },
     concurrent: {
@@ -164,24 +201,22 @@ module.exports = function(grunt) {
         src: '**/*'
       }
     }
-  };
+  }
 
-  grunt.initConfig(config);
+  grunt.initConfig(config)
 
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-jade');
-  grunt.loadNpmTasks('grunt-contrib-stylus');
-  grunt.loadNpmTasks('grunt-contrib-coffee');
-  grunt.loadNpmTasks('grunt-open');
-  grunt.loadNpmTasks('grunt-gh-pages');
-  grunt.loadNpmTasks('grunt-concurrent');
-  grunt.loadTasks('./bespoke-remote/tasks');
+  grunt.loadNpmTasks('grunt-contrib-clean')
+  grunt.loadNpmTasks('grunt-contrib-copy')
+  grunt.loadNpmTasks('grunt-contrib-watch')
+  grunt.loadNpmTasks('grunt-contrib-connect')
+  grunt.loadNpmTasks('grunt-contrib-jade')
+  grunt.loadNpmTasks('grunt-contrib-stylus')
+  grunt.loadNpmTasks('grunt-contrib-coffee')
+  grunt.loadNpmTasks('grunt-open')
+  grunt.loadNpmTasks('grunt-gh-pages')
+  grunt.loadNpmTasks('grunt-concurrent')
 
-  grunt.registerTask('default', ['clean', 'concurrent:compile']);
-  grunt.registerTask('server', ['default', 'concurrent:server']);
-  grunt.registerTask('deploy', ['default', 'gh-pages:public']);
-
-};
+  grunt.registerTask('default', ['clean', 'concurrent:compile'])
+  grunt.registerTask('server', ['default', 'concurrent:server'])
+  grunt.registerTask('deploy', ['default', 'gh-pages:public'])
+}
