@@ -188,10 +188,10 @@
 
     <div class="notes"></div>
 
-    <iframe class="present" id="presentFrame" src="http://localhost:8000"></iframe>
-    <iframe class="future" id="futureFrame" src="http://localhost:8000#bespoke-remote-future"></iframe>
+    <iframe class="present" id="presentFrame" src="http://<%= hostname %>:8000"></iframe>
+    <iframe class="future" id="futureFrame" src="http://<%= hostname %>:8000#bespoke-remote-future"></iframe>
 
-    <script src="http://localhost:<%= port %>/socket.io/socket.io.v0.9.15.js"></script>
+    <script src="http://<%= hostname %>:<%= port %>/socket.io/socket.io.v0.9.15.js"></script>
     <script>
       var presentFrameWindow = document.getElementById('presentFrame').contentWindow,
         futureFrameWindow = document.getElementById('futureFrame').contentWindow;
@@ -243,7 +243,7 @@
         }
       }());
 
-      var socket = io.connect('http://localhost:<%= port %>/')
+      var socket = io.connect('http://<%= hostname %>:<%= port %>/')
       socket.on('bespoke-remote.established', function() {
         log('\u2605 Connection established.')
         socket.emit('bespoke-remote.ready', '');

@@ -8,7 +8,7 @@ var fs = require('fs'),
     escodegen = require('escodegen');
 
 module.exports = function(options) {
-  var config = _.extend({ port: 8001, remoteUrl: 'remote', }, options),
+  var config = _.extend({ hostname: 'localhost', port: 8001, remoteUrl: 'remote', }, options),
       // Need to start an extra server since grunt-connect does not pass on the
       // "server" to the middleware section of the Gruntfile task :(
       // Forking and pull request might be an option ;-)
@@ -27,6 +27,7 @@ module.exports = function(options) {
 
   io.set('heartbeat timeout', 30)
   io.set('heartbeat interval', 15)
+  io.set('origins', 'http://*:*')
 
   io.sockets.on('connection', function(socket) {
     socket.emit('bespoke-remote.established')
@@ -55,7 +56,7 @@ module.exports = function(options) {
   function socketIOSnippet() {
     return [
       '<!-- socket.io websockets -->',
-      '<script src="http://localhost:' + config.port + '/socket.io/socket.io.v0.9.15.js"></script>',
+      '<script src="http://' + config.hostname + ':' + config.port + '/socket.io/socket.io.v0.9.15.js"></script>',
       ].join('\n')
   }
 
@@ -71,7 +72,8 @@ module.exports = function(options) {
 
   function interpolate(content) {
     return _.template(content, {
-      port: config.port
+      hostname: config.hostname,
+      port: config.port,
     });
   }
 
